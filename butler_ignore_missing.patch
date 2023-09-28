@@ -1,0 +1,80 @@
+diff --git a/python/lsst/daf/butler/core/datastore.py b/python/lsst/daf/butler/core/datastore.py
+index abb05423..c6f5474e 100644
+--- a/python/lsst/daf/butler/core/datastore.py
++++ b/python/lsst/daf/butler/core/datastore.py
+@@ -707,18 +707,18 @@ class Datastore(metaclass=ABCMeta):
+         transfer = self._overrideTransferMode(*datasets, transfer=transfer)
+         prepData = self._prepIngest(*datasets, transfer=transfer)
+         refs = {ref.id: ref for dataset in datasets for ref in dataset.refs}
+-        if refs.keys() != prepData.refs.keys():
+-            unsupported = refs.keys() - prepData.refs.keys()
+-            # Group unsupported refs by DatasetType for an informative
+-            # but still concise error message.
+-            byDatasetType = defaultdict(list)
+-            for datasetId in unsupported:
+-                ref = refs[datasetId]
+-                byDatasetType[ref.datasetType].append(ref)
+-            raise DatasetTypeNotSupportedError(
+-                "DatasetType(s) not supported in ingest: "
+-                + ", ".join(f"{k.name} ({len(v)} dataset(s))" for k, v in byDatasetType.items())
+-            )
++        # if refs.keys() != prepData.refs.keys():
++        #     unsupported = refs.keys() - prepData.refs.keys()
++        #     # Group unsupported refs by DatasetType for an informative
++        #     # but still concise error message.
++        #     byDatasetType = defaultdict(list)
++        #     for datasetId in unsupported:
++        #         ref = refs[datasetId]
++        #         byDatasetType[ref.datasetType].append(ref)
++        #     raise DatasetTypeNotSupportedError(
++        #         "DatasetType(s) not supported in ingest: "
++        #         + ", ".join(f"{k.name} ({len(v)} dataset(s))" for k, v in byDatasetType.items())
++        #     )
+         self._finishIngest(prepData, transfer=transfer, record_validation_info=record_validation_info)
+ 
+     def transfer_from(
+diff --git a/python/lsst/daf/butler/datastores/fileDatastore.py b/python/lsst/daf/butler/datastores/fileDatastore.py
+index 8973c117..0853ac79 100644
+--- a/python/lsst/daf/butler/datastores/fileDatastore.py
++++ b/python/lsst/daf/butler/datastores/fileDatastore.py
+@@ -1024,7 +1024,13 @@ class FileDatastore(GenericBaseDatastore):
+                 if not issubclass(formatter_class, Formatter):
+                     raise TypeError(f"Requested formatter {dataset.formatter} is not a Formatter class.")
+                 dataset.formatter = formatter_class
+-            dataset.path = self._standardizeIngestPath(dataset.path, transfer=transfer)
++
++            try:
++                dataset.path = self._standardizeIngestPath(dataset.path, transfer=transfer)
++            except FileNotFoundError as e:
++                #print(f"Prep: File {dataset.path} not found, skipping ingest of {dataset.refs}")
++                continue
++            print(f"Prep: Ingesting {dataset.path} for {dataset.refs}")
+             filtered.append(dataset)
+         return _IngestPrepData(filtered)
+ 
+@@ -1041,13 +1047,18 @@ class FileDatastore(GenericBaseDatastore):
+         progress = Progress("lsst.daf.butler.datastores.FileDatastore.ingest", level=logging.DEBUG)
+         for dataset in progress.wrap(prepData.datasets, desc="Ingesting dataset files"):
+             # Do ingest as if the first dataset ref is associated with the file
+-            info = self._extractIngestInfo(
+-                dataset.path,
+-                dataset.refs[0],
+-                formatter=dataset.formatter,
+-                transfer=transfer,
+-                record_validation_info=record_validation_info,
+-            )
++            try:
++                info = self._extractIngestInfo(
++                    dataset.path,
++                    dataset.refs[0],
++                    formatter=dataset.formatter,
++                    transfer=transfer,
++                    record_validation_info=record_validation_info,
++                )
++            except FileNotFoundError as e:
++                #print('finish: Skipping file "{}" because it does not exist.'.format(dataset.path))
++                continue
++
+             refsAndInfos.extend([(ref, info) for ref in dataset.refs])
+ 
+         # In direct mode we can allow repeated ingests of the same thing

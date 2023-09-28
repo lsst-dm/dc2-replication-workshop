@@ -8,6 +8,8 @@ BE EXTREMELY CAREFUL: If you enter the correct admin passwords for a database se
 ```
 So make sure you know what you're doing, before playing with any code found in this repository.
 
+### The hack:
+The file butler_ignore_missing.patch shows how the butler was modified temporarily, to not fail and abandon the import process when an underlying file (artifact) was missing.
 
 ### Data:
 You'll notice that the script refers to multiple folder names. Below you can see the content of each of them at the time this script was used for restoring a hetrogenous version of the DC2:
