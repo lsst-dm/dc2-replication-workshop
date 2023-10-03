@@ -1,0 +1,16 @@
+description: End to end AP pipeline specialized for ImSim
+
+instrument: lsst.obs.lsst.LsstCamImSim
+imports:
+  - location: $AP_PIPE_DIR/pipelines/LsstCamImSim/ProcessCcd.yaml
+
+# We need to set doBrighterFatter to false, to replicate the exact pipeline used
+# during generation of DLDataset0.1.1
+tasks:
+  isr:
+    class: lsst.ip.isr.IsrTask
+    config:
+      connections.newBFKernel: bfk
+      doDefect: False
+      doBrighterFatter: False
+      
