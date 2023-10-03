@@ -16,17 +16,19 @@ import matplotlib.pyplot as plt
 from lsst.daf.butler import Butler
 from astropy.io import fits
 
-tag = sys.argv[1] if __name__ == '__main__' else 'w_2022_05'
+
+#tag = sys.argv[1] if __name__ == '__main__' else 'w_2022_05'
+tag = 'w_2022_20_nobfk'
 
 ##
-fitsfile1 = '/repo/dc2/u/nsedaghat/Dataset0.1.1-sciCalexps/20220521T042355Z/calexp/20240805/i/i_sim_1.4/635810/calexp_LSSTCam-imSim_i_i_sim_1_4_635810_R01_S01_u_nsedaghat_Dataset0_1_1-sciCalexps_20220521T042355Z.fits'
+fitsfile1 = '/dc2/dc2/u/nsedaghat/Dataset0.1.1-sciCalexps/20220521T042355Z/calexp/20240805/i/i_sim_1.4/635810/calexp_LSSTCam-imSim_i_i_sim_1_4_635810_R01_S01_u_nsedaghat_Dataset0_1_1-sciCalexps_20220521T042355Z.fits'
 
-butler = Butler('/repo/dc2/')
+butler = Butler('/dc2/dc2/')
 dataId = {'instrument': 'LSSTCam-imSim',
           'visit': 635810,
           'detector': 1}
 
-run_collection = butler.registry.queryCollections(f'u/nsedaghat/RegeneratedCalexps_{tag}_orig_yaml/*')
+run_collection = butler.registry.queryCollections(f'u/nsedaghat/RegeneratedCalexps_{tag}/*')
 if len(run_collection) != 1:
     raise RuntimeError(f'Found {len(run_collection)} collections for {tag}')
 run_collection = run_collection[0]
@@ -89,5 +91,5 @@ fig.canvas.mpl_connect('motion_notify_event', on_mouse_move)
 
 
 # Show the plot
-plt.savefig(f'compare_calexps_{tag}.png')
-#plt.show()
+#plt.savefig(f'compare_calexps_{tag}.png')
+plt.show()
