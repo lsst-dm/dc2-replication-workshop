@@ -1,0 +1,52 @@
+description: Basic pipeline for generating coadds for (parts of) DC2
+# This is a copy of the exact base pipeline used for DM-34851.
+
+instrument: lsst.obs.lsst.LsstCamImSim
+imports:
+  - location: $AP_PIPE_DIR/pipelines/LsstCamImSim/ProcessCcd.yaml
+    # exclude:
+    #   - calibrate
+  - location: $AP_PIPE_DIR/pipelines/ApTemplate.yaml
+    exclude:  # These tasks come from LsstCamImSim/ProcessCcd.yaml instead
+      - processCcd
+
+tasks:
+  isr:
+    class: lsst.ip.isr.IsrTask
+    config:
+      #without this config you'd get "Must supply a kernel if config.doBrighterFatter=True"
+      doBrighterFatter: False
+
+  calibrate: 
+    class: lsst.pipe.tasks.calibrate.CalibrateTask
+    #config opts borrowed from $OBS_LSST_DIR/pipelines/imsim/DRP.yaml
+    config:
+      connections.astromRefCat: 'cal_ref_cat_2_2'
+      connections.photoRefCat: 'cal_ref_cat_2_2'
+      astromRefObjLoader.ref_dataset_name: 'cal_ref_cat_2_2'
+      photoRefObjLoader.ref_dataset_name: 'cal_ref_cat_2_2'
+      python: >
+        config.astromRefObjLoader.filterMap = {band: 'lsst_%s_smeared' % (band) for band in 'ugrizy'};
+        config.photoRefObjLoader.filterMap = {band: 'lsst_%s_smeared' % (band) for band in 'ugrizy'};
+         
+  makeWarp:
+    class: lsst.pipe.tasks.makeCoaddTempExp.MakeWarpTask
+    config:
+      #doWriteEmptyWarps: True
+      #doApplyExternalPhotoCalib: False
+      #doApplyExternalSkyWcs: False
+      #makePsfMatched: True
+      doApplyFinalizedPsf: False
+      
+  assembleCoadd:
+    class: lsst.pipe.tasks.assembleCoadd.SafeClipAssembleCoaddTask
+    config:
+      doSelectVisits: True
+      doNImage: True
+      connections.outputCoaddName: parameters.coaddName
+      # TODO: redundant connection definitions workaround for DM-30210
+      connections.selectedVisits: parameters.selectedVisits
+      connections.coaddExposure: parameters.template
+      # TODO: end DM-30210 workaround
+
+
