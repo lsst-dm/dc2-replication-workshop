@@ -1,0 +1,23 @@
+description: Basic pipeline for generating diffs
+
+instrument: lsst.obs.lsst.LsstCamImSim
+imports:
+  - location: $AP_PIPE_DIR/pipelines/LsstCamImSim/ApPipe.yaml
+    exclude:
+      - isr
+      - characterizeImage
+      - calibrate
+      - consolidateVisitSummary
+      - selectGoodSeeingVisits
+      - makeWarp
+      - assembleCoadd
+      - retrieveTemplate
+      - diaPipe
+
+# pipetask arguments to use:
+#   # -o
+#   payloadName: DLDataset0.1.2-diffs
+#   # -i
+#   inCollection: u/nsedaghat/RegeneratedCalexps_w_2022_20_nobfk/20231002T214649Z, u/nsedaghat/DLDataset0.1.2-templates/20231004T071202Z
+#   # -d
+#   dataQuery: "instrument='LSSTCam-imSim' AND skymap='DC2'"

@@ -1,0 +1,24 @@
+description: Basic pipeline for generating templates for (parts of) DC2 -- uses whatever settings used in gen_coadds
+
+instrument: lsst.obs.lsst.LsstCamImSim
+imports:
+  - location: ./gen_coadds.yaml
+    exclude:
+      - isr
+      - characterizeImage
+      - calibrate
+      #- consolidateVisitSummary
+      #- selectGoodSeeingVisits
+      #- makeWarp
+      #- assembleCoadd
+
+tasks:
+  retrieveTemplate: lsst.ip.diffim.getTemplate.GetMultiTractCoaddTemplateTask
+      
+# pipetask arguments to use:
+#   # -o
+#   payloadName: DLDataset0.1.2-templates
+#   # -i
+#   inCollection: u/nsedaghat/RegeneratedCalexps_w_2022_20_nobfk/20231002T214649Z
+#   # -d
+#   dataQuery: "instrument='LSSTCam-imSim' AND skymap='DC2' AND tract=3080"
